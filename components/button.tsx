@@ -2,11 +2,11 @@
 
 import { useFormStatus } from "react-dom";
 
-interface IFormButtonProps {
+interface IButtonProps {
   text: string;
 }
 
-export default function FormButton({ text }: IFormButtonProps) {
+export default function Button({ text }: IButtonProps) {
   //이 훅은 무조건 form의 내부(자식)에서 호출되고 사용되어야 한다.
   const { pending } = useFormStatus();
   return (
