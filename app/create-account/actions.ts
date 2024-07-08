@@ -1,6 +1,7 @@
 "user server";
 
 import { PASSWORD_MIN_LENGTH, PASSWORD_REGEX } from "@/lib/constants";
+import db from "@/lib/db";
 import { z } from "zod";
 
 const checkUserName = (username: string) => !username.includes("patato");
@@ -13,6 +14,30 @@ const checkPasswords = ({
   confirm_password: string;
 }) => password === confirm_password;
 
+const checkUniqueUsername = async (username: string) => {
+  const user = await db.user.findUnique({
+    where: {
+      username,
+    },
+    select: {
+      id: true,
+    },
+  });
+  return !Boolean(user);
+};
+
+const checkUniqueEmail = async (email: string) => {
+  const user = await db.user.findUnique({
+    where: {
+      email,
+    },
+    select: {
+      id: true,
+    },
+  });
+  return !Boolean(user);
+};
+
 const formSchema = z
   .object({
     username: z
@@ -22,9 +47,17 @@ const formSchema = z
       })
       .toLowerCase()
       .trim()
-      .transform((username) => `👀 ${username}`)
-      .refine(checkUserName, "No potatoes allowed"),
-    email: z.string().email().toLowerCase(),
+      // .transform((username) => `👀 ${username}`)
+      .refine(checkUserName, "No potatoes allowed")
+      .refine(checkUniqueUsername, "This username is already taken"),
+    email: z
+      .string()
+      .email()
+      .toLowerCase()
+      .refine(
+        checkUniqueEmail,
+        "There is an account already registered with that email."
+      ),
     password: z.string().min(PASSWORD_MIN_LENGTH).regex(PASSWORD_REGEX),
     confirm_password: z.string().min(10),
   })
@@ -47,13 +80,10 @@ export async function createAccount(prevState: any, formData: FormData) {
   //     console.log(e);
 
   //   }
-  const result = formSchema.safeParse(data);
+  const result = await formSchema.safeParseAsync(data);
   console.log(result);
   if (!result.success) {
-    console.log(result.error.flatten());
-
     return result.error.flatten();
   } else {
-    console.log(result.data);
   }
 }
