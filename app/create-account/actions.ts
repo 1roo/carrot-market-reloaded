@@ -4,8 +4,7 @@ import bcrypt from "bcrypt";
 import { PASSWORD_MIN_LENGTH, PASSWORD_REGEX } from "@/lib/constants";
 import db from "@/lib/db";
 import { z } from "zod";
-import { redirect } from "next/navigation";
-import getSession from "@/lib/session";
+import { getLogin } from "@/lib/login";
 
 const checkUserName = (username: string) => !username.includes("patato");
 
@@ -110,9 +109,6 @@ export async function createAccount(prevState: any, formData: FormData) {
       },
     });
 
-    const session = await getSession();
-    session.id = user.id;
-    await session.save();
-    redirect("/profile");
+    await getLogin(user.id);
   }
 }
