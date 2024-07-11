@@ -47,11 +47,21 @@ export async function GET(request: NextRequest) {
   if (user) {
     getLogin(user.id);
   }
+
+  const userEmailResponse = await fetch("https://api.github.com/user/emails", {
+    headers: {
+      Authorization: `Bearer ${access_token}`,
+    },
+    cache: "no-cache",
+  });
+  const { email } = await userEmailResponse.json();
+
   const newUser = await db.user.create({
     data: {
-      username: login,
+      username: `g-${login}`,
       github_id: id + "",
       avatar: avatar_url,
+      email,
     },
     select: {
       id: true,
